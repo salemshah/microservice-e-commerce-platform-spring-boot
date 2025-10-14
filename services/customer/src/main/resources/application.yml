@@ -1,0 +1,28 @@
+# ======================================================================
+# Customer Microservice
+# Loads configuration from Config Server and registers with Eureka
+# ======================================================================
+
+spring:
+  application:
+    name: customer-service  # Must match the file name in Config Server (customer-service.yml)
+
+  config:
+    import: optional:configserver:http://localhost:9090 # Connect to Config Server for externalized configuration
+
+  cloud:
+    config:
+      retry:
+        max-attempts: 6      # Number of retries
+        initial-interval: 1000  # Start retrying after 1s
+        multiplier: 1.5      # Backoff multiplier
+        max-interval: 10000      # maximum wait time between retries (ms)
+
+eureka:
+  client:
+    # URL of Eureka Server to register with
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+server:
+  port: 8082

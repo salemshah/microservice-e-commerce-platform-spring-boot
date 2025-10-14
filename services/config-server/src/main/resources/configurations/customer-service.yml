@@ -1,0 +1,38 @@
+#spring:
+#  data:
+#    mongodb:
+#      username: mongodb
+#      password: mongodb
+#      host: localhost
+#      port: 27017
+#      database: customer
+#      authentication-database: admin
+#
+#server:
+#  port: 9191
+
+
+# ==============================
+# Customer Service Config
+# Loaded from Config Server for customer-service
+# ==============================
+
+server:
+  port: 8082   # Local port where the customer-service will run
+
+spring:
+  data:
+    mongodb:
+      # Database connection details
+      username: mongodb
+      password: mongodb
+      host: localhost      # Change to "mongodb" if you run MongoDB in Docker
+      port: 27017
+      database: customer
+      authentication-database: admin  # Auth DB for root user
+
+eureka:
+  client:
+    # URL of the Eureka Server to register this service
+    service-url:
+      defaultZone: http://localhost:8761/eureka/

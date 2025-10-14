@@ -1,0 +1,29 @@
+#spring:
+#  config:
+#    import: optional:configserver:http://localhost:9090
+#  application:
+#    name: discovery-service
+
+
+# =================================================
+# Eureka Discovery Server
+# Loads its configuration from Config Server
+# =================================================
+
+spring:
+  application:
+    name: discovery-service  # Must match the file name in Config Server (discovery-service.yml)
+
+  config:
+    # URL of the Config Server to load configuration from
+    import: optional:configserver:http://localhost:9090
+
+server:
+  port: 8761   # Fallback (used if config server is down)
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    register-with-eureka: false
+    fetch-registry: false

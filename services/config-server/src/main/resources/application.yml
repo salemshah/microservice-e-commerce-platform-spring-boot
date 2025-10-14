@@ -1,0 +1,25 @@
+# ==============================
+# Spring Cloud Config Server
+# Centralized configuration service
+# ==============================
+
+server:
+  port: 9090   # Port where the Config Server runs (http://localhost:9090)
+
+spring:
+  application:
+    name: config-server  # Name used by other services to identify this app in Eureka or logs
+
+  profiles:
+    active: native       # Use "native" profile -> config files are loaded from local classpath (not Git)
+
+  cloud:
+    config:
+      server:
+        native:
+          # Where the Config Server will look for configuration files
+          # In this case, inside src/main/resources/configurations/
+          search-locations: classpath:/configurations
+
+#          //todo: switch to git mode by replacing the native section with
+#          spring.cloud.config.server.git.uri: https://github.com/your-repo/config-repo

@@ -1,0 +1,19 @@
+# ==============================
+# Discovery Service (Eureka Server) Config
+# Loaded from Config Server for discovery-service
+# ==============================
+
+server:
+  port: 8761   # Eureka dashboard runs at http://localhost:8761
+
+eureka:
+  instance:
+    hostname: localhost  # Hostname for Eureka (used in the registry display)
+
+  client:
+    register-with-eureka: false  # This app is the Eureka Server → it should NOT register itself
+    fetch-registry: false        # It doesn't need to fetch registry entries from other servers
+    service-url:
+      # URL where clients will register themselves
+      defaultZone: http://${eureka.instance.hostname}:8761/eureka/
+
