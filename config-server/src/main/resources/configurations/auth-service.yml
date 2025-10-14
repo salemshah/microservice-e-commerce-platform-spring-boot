@@ -1,24 +1,10 @@
-#spring:
-#  data:
-#    mongodb:
-#      username: mongodb
-#      password: mongodb
-#      host: localhost
-#      port: 27017
-#      database: customer
-#      authentication-database: admin
-#
-#server:
-#  port: 9191
-
-
 # ==============================
-# Customer Service Config
-# Loaded from Config Server for customer-service
+# Auth Service Config
+# Loaded from Config Server for auth-service
 # ==============================
 
 server:
-  port: 8082   # Local port where the customer-service will run
+  port: 8082   # Local port where the Auth-service will run
 
 spring:
   data:

@@ -1,75 +1,75 @@
 services:
-  # ============================================================
-  # SPRING CLOUD CONFIG SERVER
-  # Provides centralized configuration for all microservices
-  # ============================================================
-  config-server:
-    container_name: ms_config_server
-    image: openjdk:21-jdk
-    working_dir: /app
-    volumes:
-      - ./config-server:/app                   # Mount your local config-server code
-    command: [ "java", "-jar", "target/config-server-0.0.1-SNAPSHOT.jar" ]
-    ports:
-      - "9090:9090"
-    networks:
-      - microservices-net
-    environment:
-      SPRING_PROFILES_ACTIVE: native
-      JAVA_TOOL_OPTIONS: "-Xms256m -Xmx512m"
-    restart: unless-stopped
-
-  # ============================================================
-  # SPRING CLOUD DISCOVERY (EUREKA) SERVER
-  # Registers and manages all microservices
-  # ============================================================
-  discovery-service:
-    container_name: ms_discovery_service
-    image: openjdk:21-jdk
-    working_dir: /app
-    depends_on:
-      - config-server
-    volumes:
-      - ./discovery-service:/app
-    command: [ "java", "-jar", "target/discovery-service-0.0.1-SNAPSHOT.jar" ]
-    ports:
-      - "8761:8761"
-    environment:
-      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:9090
-      JAVA_TOOL_OPTIONS: "-Xms256m -Xmx512m"
-    networks:
-      - microservices-net
-    restart: unless-stopped
-
-  # ============================================================
-  # CUSTOMER SERVICE
-  # Example microservice (connected to MongoDB and registered in Eureka)
-  # ============================================================
-  customer-service:
-    container_name: ms_customer_service
-    image: openjdk:21-jdk
-    working_dir: /app
-    depends_on:
-      - config-server
-      - discovery-service
-      - mongodb
-    volumes:
-      - ./customer-service:/app
-    command: [ "java", "-jar", "target/customer-service-0.0.1-SNAPSHOT.jar" ]
-    ports:
-      - "8082:8082"
-    environment:
-      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:9090
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
-      SPRING_DATA_MONGODB_HOST: mongodb
-      SPRING_DATA_MONGODB_PORT: 27017
-      SPRING_DATA_MONGODB_USERNAME: mongodb
-      SPRING_DATA_MONGODB_PASSWORD: mongodb
-      SPRING_DATA_MONGODB_DATABASE: customer
-      JAVA_TOOL_OPTIONS: "-Xms512m -Xmx1024m"
-    networks:
-      - microservices-net
-    restart: unless-stopped
+#  # ============================================================
+  #  # SPRING CLOUD CONFIG SERVER
+  #  # Provides centralized configuration for all microservices
+  #  # ============================================================
+  #  config-server:
+  #    container_name: ms_config_server
+  #    image: openjdk:21-jdk
+  #    working_dir: /app
+  #    volumes:
+  #      - ./config-server:/app                   # Mount your local config-server code
+  #    command: [ "java", "-jar", "target/config-server-0.0.1-SNAPSHOT.jar" ]
+  #    ports:
+  #      - "9090:9090"
+  #    networks:
+  #      - microservices-net
+  #    environment:
+  #      SPRING_PROFILES_ACTIVE: native
+  #      JAVA_TOOL_OPTIONS: "-Xms256m -Xmx512m"
+  #    restart: unless-stopped
+  #
+  #  # ============================================================
+  #  # SPRING CLOUD DISCOVERY (EUREKA) SERVER
+  #  # Registers and manages all microservices
+  #  # ============================================================
+  #  discovery-service:
+  #    container_name: ms_discovery_service
+  #    image: openjdk:21-jdk
+  #    working_dir: /app
+  #    depends_on:
+  #      - config-server
+  #    volumes:
+  #      - ./discovery-service:/app
+  #    command: [ "java", "-jar", "target/discovery-service-0.0.1-SNAPSHOT.jar" ]
+  #    ports:
+  #      - "8761:8761"
+  #    environment:
+  #      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:9090
+  #      JAVA_TOOL_OPTIONS: "-Xms256m -Xmx512m"
+  #    networks:
+  #      - microservices-net
+  #    restart: unless-stopped
+  #
+  #  # ============================================================
+  #  # CUSTOMER SERVICE
+  #  # Example microservice (connected to MongoDB and registered in Eureka)
+  #  # ============================================================
+  #  customer-service:
+  #    container_name: ms_customer_service
+  #    image: openjdk:21-jdk
+  #    working_dir: /app
+  #    depends_on:
+  #      - config-server
+  #      - discovery-service
+  #      - mongodb
+  #    volumes:
+  #      - ./customer-service:/app
+  #    command: [ "java", "-jar", "target/customer-service-0.0.1-SNAPSHOT.jar" ]
+  #    ports:
+  #      - "8082:8082"
+  #    environment:
+  #      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:9090
+  #      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
+  #      SPRING_DATA_MONGODB_HOST: mongodb
+  #      SPRING_DATA_MONGODB_PORT: 27017
+  #      SPRING_DATA_MONGODB_USERNAME: mongodb
+  #      SPRING_DATA_MONGODB_PASSWORD: mongodb
+  #      SPRING_DATA_MONGODB_DATABASE: customer
+  #      JAVA_TOOL_OPTIONS: "-Xms512m -Xmx1024m"
+  #    networks:
+  #      - microservices-net
+  #    restart: unless-stopped
 
   # ============================================================
   # POSTGRES DATABASE
@@ -161,8 +161,8 @@ services:
     image: maildev/maildev
     restart: unless-stopped
     ports:
-      - "1080:1080"
-      - "1025:1025"
+      - "1090:1090"
+      - "1026:1026"
     networks:
       - microservices-net
 

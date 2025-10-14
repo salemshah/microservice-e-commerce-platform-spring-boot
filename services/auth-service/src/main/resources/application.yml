@@ -1,11 +1,11 @@
 # ======================================================================
-# Customer Microservice
+# Auth Microservice
 # Loads configuration from Config Server and registers with Eureka
 # ======================================================================
 
 spring:
   application:
-    name: customer-service  # Must match the file name in Config Server (customer-service.yml)
+    name: auth-service  # Must match the file name in Config Server (auth-service.yml)
 
   config:
     import: optional:configserver:http://localhost:9090 # Connect to Config Server for externalized configuration
