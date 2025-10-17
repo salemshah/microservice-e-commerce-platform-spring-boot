@@ -42,19 +42,24 @@ public class User implements UserDetails {
     @Column(length = 255)
     private String profileImage;
 
+    @Builder.Default
     @Column(nullable = false)
-    private boolean isActive = true;
+    private boolean active = true;
 
+    @Builder.Default
     @Column(nullable = false)
-    private boolean isVerified = false;
+    private boolean verified = false;
 
+    @Builder.Default
     @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
+    @Builder.Default
     @Column(nullable = false)
     private Instant updatedAt = Instant.now();
 
     // Many-to-many relation with Role
+    @Builder.Default
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",
@@ -76,22 +81,22 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return isActive;
+        return active;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return isActive;
+        return active;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return isActive;
+        return active;
     }
 
     @Override
     public boolean isEnabled() {
-        return isActive;
+        return active;
     }
 
     // Automatically update timestamps

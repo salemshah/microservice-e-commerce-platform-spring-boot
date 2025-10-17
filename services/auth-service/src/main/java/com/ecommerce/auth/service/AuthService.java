@@ -1,14 +1,20 @@
 package com.ecommerce.auth.service;
 
+import com.ecommerce.auth.audit.AuditableAction;
 import com.ecommerce.auth.dto.*;
 import com.ecommerce.auth.entity.*;
 import com.ecommerce.auth.mapper.UserMapper;
 import com.ecommerce.auth.repository.*;
+import com.ecommerce.auth.security.JwtService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.Instant;
@@ -29,41 +35,123 @@ public class AuthService {
     private final EmailVerificationTokenRepository verificationTokenRepository;
     private final RefreshTokenRepository refreshTokenRepository;
 
-    public AuthResponse register(RegisterRequest request) {
+    public AuthResponse register(RegisterRequest request, HttpServletResponse response) {
+        // Check if the email is already taken
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already registered");
         }
 
-        Role defaultRole = roleRepository.findByName("ROLE_CUSTOMER")
-                .orElseThrow(() -> new RuntimeException("Default role not found"));
+        // Determine if this is the very first user
+        boolean isFirstUser = userRepository.count() == 0;
 
-        // Use Mapper to convert DTO → Entity
+        // Choose role based on whether this is the first registration
+        String roleName = isFirstUser ? "ROLE_ADMIN" : "ROLE_CUSTOMER";
+
+        // Fetch role from DB (must exist in roles table)
+        Role defaultRole = roleRepository.findByName(roleName)
+                .orElseThrow(() -> new RuntimeException(roleName + " not found in database"));
+
+        // Convert DTO → Entity
         User user = userMapper.toEntity(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.getRoles().add(defaultRole);
 
+
         userRepository.save(user);
 
-        String jwt = jwtService.generateToken(user);
-        AuthResponse response = userMapper.toAuthResponse(user);
-        response.setToken(jwt);
+        // Generate JWT token
+        String jwt = jwtService.generateJwtToken(user);
 
-        return response;
+        //Map to AuthResponse
+        AuthResponse authResponse = userMapper.toAuthResponse(user);
+
+        ResponseCookie cookie = ResponseCookie.from("a_token", jwt)
+                .httpOnly(true)                // not accessible via JavaScript
+                .secure(true)                  // only sent over HTTPS
+                .path("/")                     // cookie applies to all endpoints
+                .maxAge(60 * 60)               // 1 hour
+                //.sameSite("Strict")            // or "Lax" or "None" if cross-site
+                .sameSite("None") //If your frontend (React, Vue, etc.)
+                .build();
+
+        // Add cookie to response header
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+
+        authResponse.setToken(jwt);
+
+        return authResponse;
     }
 
-    public AuthResponse login(LoginRequest request) {
+
+    @AuditableAction("LOGIN")
+    public AuthResponse login(LoginRequest request, HttpServletResponse response) {
+        // Authenticate credentials
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
 
+        // Fetch user
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Create access and refresh tokens
-        String accessToken = jwtService.generateToken(user);
+        // Generate tokens
+        String accessToken = jwtService.generateJwtToken(user);
         String refreshToken = generateRefreshToken(user);
 
+        // Create access token cookie
+        ResponseCookie accessCookie = ResponseCookie.from("a_token", accessToken)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(60 * 60) // 1 hour
+//                .sameSite("Strict") // use "None" if frontend is on another domain
+                .sameSite("None") //If your frontend (React, Vue, etc.)
+                .build();
+
+        // Create refresh token cookie
+        ResponseCookie refreshCookie = ResponseCookie.from("r_token", refreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(7 * 24 * 60 * 60) // 7 days
+//                .sameSite("Strict")
+                .sameSite("None") //If your frontend (React, Vue, etc.)
+                .build();
+
+        // Add cookies to response
+        response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+
+        // (still returns tokens if needed for legacy compatibility)
         return new AuthResponse(accessToken + "|" + refreshToken);
+    }
+
+
+    @AuditableAction("PASSWORD_CHANGE")
+    public void changePassword(String email, ChangePasswordRequest request) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new RuntimeException("Old password is incorrect");
+        }
+
+        if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
+            throw new RuntimeException("New password must be different from the old one");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setUpdatedAt(Instant.now());
+        userRepository.save(user);
+    }
+
+    @AuditableAction("LOGOUT")
+    @Transactional
+    public void logout(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        refreshTokenRepository.deleteAllByUser(user);
     }
 
     private String generateRefreshToken(User user) {
@@ -105,26 +193,6 @@ public class AuthService {
         return userMapper.toUserResponse(user);
     }
 
-
-    public void changePassword(String email, ChangePasswordRequest request) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // Verify old password
-        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
-            throw new RuntimeException("Old password is incorrect");
-        }
-
-        // Prevent reusing the same password
-        if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
-            throw new RuntimeException("New password must be different from the old one");
-        }
-
-        // Encode and save new password
-        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        user.setUpdatedAt(Instant.now());
-        userRepository.save(user);
-    }
 
     public void forgotPassword(ForgotPasswordRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
@@ -230,17 +298,6 @@ public class AuthService {
     }
 
 
-    public void logout(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // Invalidate all refresh tokens for this user
-        refreshTokenRepository.deleteAllByUser(user);
-
-        // (Optional) Log event or store audit entry
-        System.out.println("User logged out: " + user.getEmail());
-    }
-
     public AuthResponse refreshToken(RefreshTokenRequest request) {
         RefreshToken refreshToken = refreshTokenRepository.findByToken(request.getRefreshToken())
                 .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
@@ -250,7 +307,7 @@ public class AuthService {
         }
 
         User user = refreshToken.getUser();
-        String newAccessToken = jwtService.generateToken(user);
+        String newAccessToken = jwtService.generateJwtToken(user);
 
         return new AuthResponse(newAccessToken);
     }

@@ -3,6 +3,8 @@ package com.ecommerce.auth.controller;
 import com.ecommerce.auth.dto.*;
 import com.ecommerce.auth.service.AuthService;
 import com.ecommerce.auth.util.ResponseBuilder;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -12,20 +14,21 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@Tag(name = "Auth")
 public class AuthController {
 
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<Object> register(@Valid @RequestBody RegisterRequest request) {
-        AuthResponse response = authService.register(request);
+    public ResponseEntity<Object> register(@Valid @RequestBody RegisterRequest request, HttpServletResponse HTSResponse) {
+        AuthResponse response = authService.register(request, HTSResponse);
         return ResponseBuilder.success("User registered successfully", response);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Object> login(@Valid @RequestBody LoginRequest request) {
-        AuthResponse response = authService.login(request);
-        return ResponseBuilder.success("Login successful", response);
+    public ResponseEntity<Object> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
+        AuthResponse AuthResponse = authService.login(request, response);
+        return ResponseBuilder.success("Login successful", AuthResponse);
     }
 
     @PostMapping("/refresh-token")

@@ -18,17 +18,20 @@ public interface UserMapper {
 
     UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
 
+    // Map from RegisterRequest -> User entity
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "roles", ignore = true)
-    @Mapping(target = "isActive", constant = "true")
-    @Mapping(target = "isVerified", constant = "false")
+    @Mapping(target = "active", constant = "true")
+    @Mapping(target = "verified", constant = "false")
     @Mapping(target = "createdAt", expression = "java(java.time.Instant.now())")
     @Mapping(target = "updatedAt", expression = "java(java.time.Instant.now())")
     User toEntity(RegisterRequest dto);
 
+    // Map from User -> AuthResponse
     @Mapping(target = "token", ignore = true)
     AuthResponse toAuthResponse(User user);
 
+    // Map from User -> UserResponse
     @Mapping(target = "roles", source = "roles", qualifiedByName = "mapRolesToStrings")
     UserResponse toUserResponse(User user);
 

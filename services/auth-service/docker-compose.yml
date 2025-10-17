@@ -1,0 +1,84 @@
+version: "3.9"
+
+services:
+  # ===============================
+  # PostgreSQL Database
+  # ===============================
+  postgres:
+    image: postgres:17
+    container_name: auth-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: auth_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - auth-network
+
+  # ===============================
+  # Auth Microservice
+  # ===============================
+  auth-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: auth-service
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Spring basic config
+      SPRING_APPLICATION_NAME: auth-service
+      SERVER_PORT: 8082
+
+      # Database connection (use container name, not localhost)
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/auth_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+
+      # Hibernate & JPA
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: "true"
+
+      # Config & Service Discovery
+      # Use container hostnames or Docker network aliases instead of host.docker.internal
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:9090
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-server:8761/eureka/
+
+      # (Optional) JWT or custom env variables
+      JWT_SECRET: my-super-secret-key
+      JWT_EXPIRATION: 900000
+      JWT_REFRESH_EXPIRATION: 604800000
+    ports:
+      - "8082:8082"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8082/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - auth-network
+
+# ===============================
+# Volumes
+# ===============================
+volumes:
+  postgres_data:
+
+# ===============================
+# Networks
+# ===============================
+networks:
+  auth-network:
+    driver: bridge
