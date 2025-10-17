@@ -1,24 +1,75 @@
-# ==============================
-# Auth Service Config
-# Loaded from Config Server for auth-service
-# ==============================
+# ===============================================================
+# AUTH SERVICE
+# Handles user registration, authentication, and authorization
+# ===============================================================
 
 server:
-  port: 8082   # Local port where the Auth-service will run
+  port: 8082  # Local port where this microservice runs
 
 spring:
-  data:
-    mongodb:
-      # Database connection details
-      username: mongodb
-      password: mongodb
-      host: localhost      # Change to "mongodb" if you run MongoDB in Docker
-      port: 27017
-      database: customer
-      authentication-database: admin  # Auth DB for root user
+  application:
+    name: auth-service  # Must match the folder/file name in Config Server
+
+  config:
+    # URL of the Config Server where this service loads its configuration
+    import: optional:configserver:http://localhost:8888
+
+  datasource:
+    # PostgreSQL database connection details
+    url: jdbc:postgresql://localhost:5432/ms_auth_db
+    username: postgres
+    password: root
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    # Automatically updates tables based on JPA entities
+    hibernate:
+      ddl-auto: update
+    show-sql: true  # Prints SQL statements in the logs
+    properties:
+      hibernate:
+        format_sql: true  # Makes SQL logs more readable
+
+  cloud:
+    config:
+      retry:
+        max-attempts: 6        # Number of retries to connect to Config Server
+        initial-interval: 1000 # Delay between retries (ms)
+        multiplier: 1.5        # Multiplier for exponential backoff
+        max-interval: 10000    # Maximum retry interval (ms)
 
 eureka:
+  instance:
+    prefer-ip-address: true  # Register using the actual IP instead of hostname
   client:
-    # URL of the Eureka Server to register this service
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://localhost:8761/eureka/  # URL of Eureka Server
+    should-unregister-on-shutdown: false
+
+logging:
+  level:
+    root: INFO
+    org.springframework.security: DEBUG
+    com.ecommerce.auth: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,refresh  # Endpoints exposed for Actuator
+  endpoint:
+    health:
+      show-details: always            # Show full health details in /actuator/health
+
+example:
+  app:
+    jwtSecret: "mySuperSecretKeyForJwtAccessTokenGeneration123456"
+    jwtRefreshSecret: "mySuperSecretKeyForJwtRefreshTokenGeneration654321"
+    jwtExpirationMs: 3600000          # Access token validity: 1 hour
+    jwtRefreshExpirationMs: 604800000 # Refresh token validity: 7 days
+
+springdoc:
+  api-docs:
+    path: /api/docs  # Swagger/OpenAPI endpoint

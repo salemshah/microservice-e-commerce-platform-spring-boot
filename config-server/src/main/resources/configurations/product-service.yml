@@ -1,0 +1,45 @@
+# ===============================================================
+# PRODUCT SERVICE
+# Manages product catalog, categories, and attributes
+# ===============================================================
+
+spring:
+  application:
+    name: product-service  # Used by Eureka and Config Server
+
+  datasource:
+    # Database connection configuration
+    url: jdbc:postgresql://localhost:5432/ms_products_db
+    username: postgres
+    password: root
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    # Hibernate configuration for ORM
+    hibernate:
+      ddl-auto: validate  # Ensures schema matches entities; Flyway manages DDL
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true  # Logs SQL queries in console
+    properties:
+      hibernate.format_sql: true  # Nicely formats SQL logs
+
+  flyway:
+    # Flyway handles database versioning & schema migrations
+    enabled: true
+    baseline-on-migrate: true
+    baseline-description: "init"  # Description for baseline migration
+    baseline-version: 0           # Starting version for schema
+    user: ${spring.datasource.username}
+    password: ${spring.datasource.password}
+
+server:
+  port: 8585  # Product service port (http://localhost:8585)
+
+eureka:
+  client:
+    # Register this service with the Eureka Discovery Server
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+    should-unregister-on-shutdown: false

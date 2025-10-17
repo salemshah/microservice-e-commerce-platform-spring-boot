@@ -1,25 +1,31 @@
-# ==============================
-# Spring Cloud Config Server
-# Centralized configuration service
-# ==============================
+# ===============================================================
+# CONFIG SERVER (config-server)
+# Centralized configuration service for all microservices
+# ===============================================================
 
 server:
-  port: 9090   # Port where the Config Server runs (http://localhost:9090)
+  port: 9090  # Port where the Config Server runs (default is 8888)
 
 spring:
   application:
-    name: config-server  # Name used by other services to identify this app in Eureka or logs
+    name: config-server  # The name of this service in the Spring Cloud ecosystem
 
   profiles:
-    active: native       # Use "native" profile -> config files are loaded from local classpath (not Git)
+    active: native  # "native" means config files are stored locally (not in Git)
 
   cloud:
     config:
       server:
         native:
-          # Where the Config Server will look for configuration files
-          # In this case, inside src/main/resources/configurations/
+          # Folder where configuration files for each microservice are stored
+          # Example: /resources/configurations/product-service.yml
           search-locations: classpath:/configurations
 
-#          //todo: switch to git mode by replacing the native section with
-#          spring.cloud.config.server.git.uri: https://github.com/your-repo/config-repo
+## Eureka registration settings (optional)
+## Config Server usually does not need to register with Eureka
+#eureka:
+#  instance:
+#    hostname: localhost
+#  client:
+#    register-with-eureka: false
+#    fetch-registry: false

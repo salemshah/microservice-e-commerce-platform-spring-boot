@@ -1,61 +1,3 @@
-## ======================================================================
-## Auth Microservice
-## Loads configuration from Config Server and registers with Eureka
-## ======================================================================
-#
-#spring:
-#  application:
-#    name: auth-service  # Must match the file name in Config Server (auth-service.yml)
-#
-#  config:
-#    import: optional:configserver:http://localhost:9090 # Connect to Config Server for externalized configuration
-#
-#  cloud:
-#    config:
-#      retry:
-#        max-attempts: 6      # Number of retries
-#        initial-interval: 1000  # Start retrying after 1s
-#        multiplier: 1.5      # Backoff multiplier
-#        max-interval: 10000      # maximum wait time between retries (ms)
-#
-#eureka:
-#  client:
-#    # URL of Eureka Server to register with
-#    service-url:
-#      defaultZone: http://localhost:8761/eureka/
-#
-#server:
-#  port: 8082
-#
-#
-#
-#
-#logging:
-#  level:
-#    root: INFO
-#    org.springframework.security: DEBUG
-#    org.springframework.web: INFO
-#    com.ecommerce.auth: DEBUG
-#  pattern:
-#    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n"
-#
-#
-#management:
-#  endpoints:
-#    web:
-#      exposure:
-#        include: health,info,refresh
-#  endpoint:
-#    health:
-#      show-details: always
-#
-#
-#jwt:
-#  secret: your-very-long-random-256-bit-secret-key
-#  expiration: 900000  # 15 minutes in milliseconds
-#  refresh-expiration: 604800000 # 7 days
-
-
 # ======================================================================
 # Auth Microservice
 # Loads configuration from Config Server and registers with Eureka
@@ -93,13 +35,6 @@ spring:
 server:
   port: 8082
 
-eureka:
-  instance:
-    prefer-ip-address: true
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
-
 logging:
   level:
     root: INFO
@@ -121,9 +56,17 @@ example:
   app:
     jwtSecret: "mySuperSecretKeyForJwtAccessTokenGeneration123456"
     jwtRefreshSecret: "mySuperSecretKeyForJwtRefreshTokenGeneration654321"
-    jwtExpirationMs: 3600000            # 1 hour = 1000ms * 60 * 60
-    jwtRefreshExpirationMs: 604800000   # 7 days = 1000ms * 60 * 60 * 24 * 7
+    jwtExpirationMs: 3600000            # 1 hour
+    jwtRefreshExpirationMs: 604800000   # 7 days
 
 springdoc:
   api-docs:
     path: /api/docs
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    should-unregister-on-shutdown: false
