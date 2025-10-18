@@ -1,0 +1,36 @@
+# ===============================================================
+# ORDER SERVICE
+# Manages order
+# ===============================================================
+
+spring:
+  application:
+    name: order-service
+
+  datasource:
+    url: jdbc:postgresql://localhost5432/ms_order_db
+    username: postgres
+    password: root
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    # Hibernate configuration for ORM
+    hibernate:
+      ddl-auto: update  # Ensures schema matches entities;
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true  # Logs SQL queries in console
+    properties:
+      hibernate.format_sql: true  # Nicely formats SQL logs
+
+server:
+  port: 8686  # Product service port (http://localhost:8686)  
+
+
+eureka:
+  client:
+    # Register this service with the Eureka Discovery Server
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+    should-unregister-on-shutdown: false

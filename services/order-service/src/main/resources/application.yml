@@ -1,0 +1,31 @@
+# ===============================================================
+# ORDER SERVICE
+# Manages order
+# ===============================================================
+
+spring:
+  application:
+    name: order-service # Must match the config file name on Config Server
+
+  config:
+    # Config Server URL
+    # The "optional:" prefix allows the app to start even if Config Server is down
+    import: optional:configserver:http://localhost:9090
+
+  cloud:
+    config:
+      fail-fast: true
+      retry:
+        max-attempts: 10
+        initial-interval: 1000
+        multiplier: 1.5
+        max-interval: 10000
+
+eureka:
+  client:
+    should-unregister-on-shutdown: false
+
+
+springdoc:
+  api-docs:
+    path: /api/docs
