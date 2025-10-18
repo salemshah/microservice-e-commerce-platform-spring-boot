@@ -2,7 +2,6 @@ package com.ecommerce.product.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -58,38 +57,39 @@ public class Product {
     @Column(precision = 10, scale = 2)
     private BigDecimal weight;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<ProductCategory> productCategories = new HashSet<>();
-
-
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // Relationships
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ProductCategory> productCategories = new HashSet<>();
+
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ProductImage> images = new HashSet<>();
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ProductAttribute> attributes = new HashSet<>();
 
-    @ManyToMany
-    @JoinTable(
-            name = "product_category",
-            joinColumns = @JoinColumn(name = "product_id"),
-            inverseJoinColumns = @JoinColumn(name = "category_id")
-    )
-    private Set<Category> categories = new HashSet<>();
-
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Review> reviews = new HashSet<>();
 
     @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-    }
+    protected void onCreate() { this.createdAt = LocalDateTime.now(); }
 
     @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
+    protected void onUpdate() { this.updatedAt = LocalDateTime.now(); }
+
+    // Helper method to maintain bidirectional relationship
+    public void addCategory(Category category, int displayOrder) {
+        ProductCategory pc = new ProductCategory();
+        pc.setProduct(this);
+        pc.setCategory(category);
+        pc.setDisplayOrder(displayOrder);
+        this.productCategories.add(pc);
+        category.getProductCategories().add(pc);
+    }
+
+    public void removeCategory(Category category) {
+        this.productCategories.removeIf(pc -> pc.getCategory().equals(category));
+        category.getProductCategories().removeIf(pc -> pc.getProduct().equals(this));
     }
 }

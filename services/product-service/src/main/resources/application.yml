@@ -25,3 +25,8 @@ spring:
 eureka:
   client:
     should-unregister-on-shutdown: false
+
+
+springdoc:
+  api-docs:
+    path: /api/docs

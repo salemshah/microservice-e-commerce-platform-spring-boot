@@ -12,20 +12,27 @@ import lombok.*;
 @AllArgsConstructor
 public class ProductCategory {
 
-    @EmbeddedId
-    private ProductCategoryId id = new ProductCategoryId();
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("productId")
-    @JoinColumn(name = "product_id")
+    @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("categoryId")
-    @JoinColumn(name = "category_id")
+    @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
-    // Optional extra fields
-    private boolean primaryCategory = false;
-    private int displayOrder = 0;
+    @Column(name = "display_order", nullable = false)
+    private Integer displayOrder = 0;
+
+    @Column(name = "primary_category", nullable = false)
+    private Boolean primaryCategory = false;
+
+    @PrePersist
+    void prePersist() {
+        if (displayOrder == null) displayOrder = 0;
+        if (primaryCategory == null) primaryCategory = false;
+    }
 }
