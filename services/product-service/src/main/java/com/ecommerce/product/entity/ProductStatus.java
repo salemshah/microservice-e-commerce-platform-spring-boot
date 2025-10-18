@@ -1,4 +1,8 @@
 package com.ecommerce.product.entity;
 
-public class ProductStatus {
+public enum ProductStatus {
+    ACTIVE,
+    INACTIVE,
+    OUT_OF_STOCK,
+    DISCONTINUED
 }

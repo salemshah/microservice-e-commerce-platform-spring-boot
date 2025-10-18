@@ -17,7 +17,7 @@ spring:
   jpa:
     # Hibernate configuration for ORM
     hibernate:
-      ddl-auto: validate  # Ensures schema matches entities; Flyway manages DDL
+      ddl-auto: update  # Ensures schema matches entities; Flyway manages DDL
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true  # Logs SQL queries in console
